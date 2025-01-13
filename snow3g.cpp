@@ -5,7 +5,7 @@ using namespace std;
 
 u32 mul_alpha (byte_t b)
 {
-    return Word {
+    return DWord {
         mulX_pow(b, 23,  0xa9),
         mulX_pow(b, 245, 0xa9),
         mulX_pow(b, 48,  0xa9),
@@ -16,7 +16,7 @@ u32 mul_alpha (byte_t b)
 
 u32 div_alpha (byte_t b)
 {
-    return Word {
+    return DWord {
         mulX_pow(b, 16, 0xa9),  
         mulX_pow(b, 39, 0xa9),
         mulX_pow(b, 6,  0xa9),
@@ -27,11 +27,11 @@ u32 div_alpha (byte_t b)
 
 u32 s1 (u32 _w)
 {
-    Word w = _w;
+    DWord w = _w;
     sub_bytes (w.begin(), w.end(), sBox);
     auto [b0, b1, b2, b3] = w.bytes;
 
-    return Word {
+    return DWord {
         mulX(b0, 0x1b) ^ mulX(b3, 0x1b) ^ b3 ^ b1 ^ b2,
         mulX(b0, 0x1b) ^ mulX(b1, 0x1b) ^ b0 ^ b2 ^ b3,
         mulX(b1, 0x1b) ^ mulX(b2, 0x1b) ^ b3 ^ b1 ^ b0,
@@ -42,11 +42,11 @@ u32 s1 (u32 _w)
 
 u32 s2 (u32 _w)
 {
-    Word w = _w;
+    DWord w = _w;
     sub_bytes (w.begin(), w.end(), sBox_q);
     auto [b0, b1, b2, b3] = w.bytes;
 
-    return Word {
+    return DWord {
         mulX(b0, 0x69) ^ mulX(b3, 0x69) ^ b1 ^ b2 ^ b3,
         mulX(b0, 0x69) ^ mulX(b1, 0x69) ^ b0 ^ b2 ^ b3,
         mulX(b1, 0x69) ^ mulX(b2, 0x69) ^ b0 ^ b1 ^ b3,
@@ -58,11 +58,11 @@ u32 s2 (u32 _w)
 // ------------------------ раздел 1.2.2.1 ------------------------
 void LFSR_init_mode (vector<u32>& LFSR, u32 f)
 {
-    auto [a0, a1, a2, a3] = static_cast<Word>(LFSR[0]).bytes;
-    auto [b0, b1, b2, b3] = static_cast<Word>(LFSR[11]).bytes;
+    auto [a0, a1, a2, a3] = static_cast<DWord>(LFSR[0]).bytes;
+    auto [b0, b1, b2, b3] = static_cast<DWord>(LFSR[11]).bytes;
 
-    u32 newS0  = Word {a1, a2, a3, 0};
-    u32 newS11 = Word {0, b0, b1, b2};
+    u32 newS0  = DWord {a1, a2, a3, 0};
+    u32 newS11 = DWord {0, b0, b1, b2};
 
     u32 lastWord = newS0 ^ newS11 ^ mul_alpha(a0) ^ div_alpha(b3) ^ LFSR[2] ^ f;
 
@@ -115,11 +115,11 @@ initialize (Block128 masterKey, Block128 initV)
 }
 
 
-vector<Word> gen_key_stream (vector<u32>& LFSR, vector<u32>& FSM, size_t n)
+vector<DWord> gen_key_stream (vector<u32>& LFSR, vector<u32>& FSM, size_t n)
 {
     clock_FSM(LFSR, FSM);
     LFSR_keystream_mode(LFSR);
-    vector<Word> keys(n);
+    vector<DWord> keys(n);
 
     for (auto& el : keys)
     {

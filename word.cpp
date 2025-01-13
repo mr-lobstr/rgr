@@ -1,7 +1,7 @@
 #include "byte_word_block.h"
 using namespace std;
 
-Word::Word (u32 u) 
+DWord::DWord (u32 u) 
     : bytes {
         u >> 24 & 0xff,
         u >> 16 & 0xff,
@@ -11,12 +11,12 @@ Word::Word (u32 u)
 {}
 
 
-Word::Word (byte_t b0, byte_t b1, byte_t b2, byte_t b3)
+DWord::DWord (byte_t b0, byte_t b1, byte_t b2, byte_t b3)
     : bytes {b0, b1, b2, b3}
 {}
 
 
-Word::operator uint32_t ()
+DWord::operator uint32_t ()
 {
     return static_cast<uint32_t> (bytes[0]) << 24
          | static_cast<uint32_t> (bytes[1]) << 16
@@ -25,43 +25,43 @@ Word::operator uint32_t ()
 }
 
 
-byte_t & Word::operator[] (size_t i)
+byte_t & DWord::operator[] (size_t i)
 {
     return bytes[i];
 }
 
 
-byte_t const& Word::operator[] (size_t i) const
+byte_t const& DWord::operator[] (size_t i) const
 {
     return bytes[i];
 }
 
 
-byte_t * Word::begin ()
+byte_t * DWord::begin ()
 {
     return bytes;
 }
 
 
-byte_t * Word::end ()
+byte_t * DWord::end ()
 {
-    return this->begin() + sizeof(Word);
+    return this->begin() + sizeof(DWord);
 }
 
 
-byte_t const* Word::begin () const
+byte_t const* DWord::begin () const
 {
     return bytes;
 }
 
 
-byte_t const* Word::end () const
+byte_t const* DWord::end () const
 {
-    return this->begin() + sizeof(Word);
+    return this->begin() + sizeof(DWord);
 }
 
 
-ostream & operator<<(ostream &out, Word const& w)
+ostream & operator<<(ostream &out, DWord const& w)
 {
     for (auto b : w.bytes)
     {

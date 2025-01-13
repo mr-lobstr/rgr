@@ -3,8 +3,9 @@
 using namespace std;
 
 // ------------------------------ для Block128 ------------------------------
-pair<vector<Block128>, size_t>
-string_to_blocks (const string& s)
+
+
+vector<Block128> string_to_blocks (const string& s)
 {
     vector<Block128> blocks (s.size() / 16 + 1);
     auto it = s.begin();
@@ -14,13 +15,17 @@ string_to_blocks (const string& s)
         for (auto& byte : block)
         {
             if (it == s.end())
+            {
                 break;
+            }
             
             byte = *it++;
         }
     }
 
-    return { blocks, 16 - (s.size() % 16) };
+    blocks.back()[3][3] = 16ll - (s.size() % 16);
+
+    return blocks;
 }
 
 
@@ -32,6 +37,7 @@ string blocks_to_string (vector<Block128> const& blocks)
     {
         copy(block.begin(), block.end(), back_inserter(res));
     }
+
     return res;
 }
 
@@ -39,7 +45,7 @@ string blocks_to_string (vector<Block128> const& blocks)
 // ------------------------------ общие функции ------------------------------
 void mul_by_column (Block128& block, Block128 const& mtx, size_t n)
 {
-    Word temp;
+    DWord temp;
     
     for (size_t i = 0; i < 4; ++i)
     {
@@ -67,16 +73,18 @@ void mix_columns (Block128& block, Block128 const& mtx)
 
 void add_round_key (Block128& block, const Block128& key)
 {
-    transform (block.begin(), block.end(), key.begin(), block.begin(), bit_xor<>{});   
+    transform (block.begin(), block.end(), key.begin(), block.begin(), [] (byte_t b1, byte_t b2) {
+        return b1 ^ b2;
+    });   
 }
 
 
 // ------------------------------ функции для зашифровки ------------------------------
 void shift_rows (Block128& block)
 {
-    rot_bytes_left(block[1].begin(), block[1].end(), 3);
-    rot_bytes_left(block[2].begin(), block[2].end(), 2);
-    rot_bytes_left(block[3].begin(), block[3].end(), 1);
+    rot_bytes_left (block[1].begin(), block[1].end(), 3);
+    rot_bytes_left (block[2].begin(), block[2].end(), 2);
+    rot_bytes_left (block[3].begin(), block[3].end(), 1);
 }
 
 
@@ -146,8 +154,7 @@ string aes_encrypt (string const& str, string const& pass)
 {
     Block128 masterKey = password_hash (pass);
     vector<Block128> keys = key_expansion(masterKey, 10);
-
-    auto [blocks, cnt] = string_to_blocks(str);
+    auto blocks = string_to_blocks(str);
 
     for (auto& block : blocks)
     {
@@ -157,20 +164,22 @@ string aes_encrypt (string const& str, string const& pass)
     return blocks_to_string(blocks);
 }
 
-
 string aes_decrypt (string const& str, string const& pass)
 {
     Block128 masterKey = password_hash (pass);
     vector<Block128> keys = key_expansion(masterKey, 10);
-
-    auto [blocks, cnt]  = string_to_blocks(str);
-
+    auto blocks  = string_to_blocks(str);
+    
     for (auto& block : blocks)
     {
         decrypt_block(block, keys);
     }
+    
+    blocks.pop_back();
+    size_t cnt = blocks.back()[3][3];
 
     auto s = blocks_to_string(blocks);
     s.erase(s.end() - cnt, s.end());
+
     return s;
 }

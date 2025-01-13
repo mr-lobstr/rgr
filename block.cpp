@@ -6,13 +6,13 @@ Block128::Block128 (u32 u0, u32 u1, u32 u2, u32 u3)
 {}
 
 
-Word & Block128::operator[] (size_t i)
+DWord & Block128::operator[] (size_t i)
 {
     return words[i];
 }
 
 
-Word const& Block128::operator[] (size_t i) const
+DWord const& Block128::operator[] (size_t i) const
 {
     return words[i];
 }
@@ -42,7 +42,7 @@ byte_t const* Block128::end () const
 }
 
 
-ostream & operator<<(ostream &out, Block128 const& block)
+ostream & operator<< (ostream &out, Block128 const& block)
 {
     for (auto w : block.words)
     {
